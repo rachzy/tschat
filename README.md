@@ -1,2 +1,5 @@
 # tschat
-A fast-chat system coded on Typescript
+A fast-chat system coded on Typescript. <br>
+I created this project with the only intention of practicing my Typescript skills
+
+This project is COMPLETELY free of Copyright, feel free to use it for whatever and however you want
