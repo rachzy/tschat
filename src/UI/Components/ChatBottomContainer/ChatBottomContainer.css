@@ -1,0 +1,34 @@
+.chat-bottom-container {
+    display: flex;
+    margin-top: auto;
+
+    background-color: rgb(59, 54, 54);
+    border-radius: 1.5vh;
+
+    justify-content: space-between;
+    padding: 5px;
+}
+
+.chat-bottom-container input {
+    width: 80%;
+    padding: 8px;
+    border-radius: 1.5vh;
+    border: none;
+    background: rgb(71, 65, 65);
+    color: white;
+    outline: none;
+}
+
+.chat-bottom-container button {
+    background: linear-gradient(to left, rgb(60, 10, 153), rgb(38, 4, 102)) ;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    width: 15%;
+    cursor: pointer;
+    transition: 0.2s all;
+}
+
+.chat-bottom-container button:hover {
+    transform: scale(1.05);
+}

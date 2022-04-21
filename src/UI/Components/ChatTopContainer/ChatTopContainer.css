@@ -1,0 +1,33 @@
+.chat-top-container {
+    display: flex;
+    height: 30px;
+    margin-bottom: auto;
+
+    justify-content: space-between; 
+
+    background-color: rgb(59, 54, 54);
+    border-radius: 1.5vh;
+    padding: 5px;
+}
+
+.chat-top-container p {
+    margin-block-start: 1px;
+}
+
+.chat-top-container button {
+    background-color: transparent;
+
+    border: 1px solid rgb(173, 18, 18);
+    border-radius: 1vh;
+
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    padding: 5px;
+
+    cursor: pointer;
+    transition: 0.2s all;
+}
+
+.chat-top-container button:hover {
+    background-color: rgb(173, 18, 18);;
+}
