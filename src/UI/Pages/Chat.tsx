@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {IoSendSharp} from "react-icons/io5";
 
 import MainWrapper from "../Components/MainWrapper/MainWrapper";
 import ChatContainer from "../Components/ChatContainer/ChatContainer";
@@ -96,7 +97,7 @@ const Chat: React.FC<IProp> = ({ userData, setUserData }) => {
             value={messageInputValue}
             placeholder="Type your message here..."
           />
-          <button onClick={handleSendButtonClick}>Send</button>
+          <button onClick={handleSendButtonClick}><IoSendSharp /></button>
         </ChatBottomContainer>
       </ChatContainer>
     </MainWrapper>
