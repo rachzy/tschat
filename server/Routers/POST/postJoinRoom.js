@@ -4,8 +4,6 @@ const router = express.Router();
 const cookieParser = require("cookie-parser");
 router.use(cookieParser());
 
-const generateRandomString = require("../../globalFunctions/generateRandomString");
-const getRoomTemplate = require("../../globalFunctions/getRoomTemplate");
 const validateParams = require("../../globalFunctions/validateParams");
 
 const authUUID = require("../../auth/authUUID");
@@ -88,4 +86,8 @@ router.post("/", (req, res) => {
       }
     );
   };
+
+  checkIfUserIsNotAlreadyInAnotherRoom(req, res, joinRoom);
 });
+
+module.exports = router;

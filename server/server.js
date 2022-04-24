@@ -28,11 +28,16 @@ app.get("/api/", (req, res) => {
   });
 });
 
+//POST
+
 const postCreateRoom = require("./Routers/POST/postCreateRoom");
-app.use("/api/createroom", postCreateRoom)
+app.use("/api/createroom", postCreateRoom);
+
+const postJoinRoom = require("./Routers/POST/postJoinRoom");
+app.use("/api/joinroom", postJoinRoom);
 
 app.listen(PORT, () => {
-  console.log(`Server hosted on http://localhost${PORT}`);
+  console.log(`Server hosted on http://localhost:${PORT}`);
 });
 
 module.exports.db = db;

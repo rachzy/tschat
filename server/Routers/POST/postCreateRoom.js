@@ -15,7 +15,7 @@ const callback = require("../../globalFunctions/callback");
 const callbackError = require("../../globalFunctions/callbackError");
 const server = require("../../server");
 
-router.get("/", (req, res) => {
+router.post("/", (req, res) => {
   let UUID = authUUID(req, res);
   let { nickname, pfp, color } = req.body;
 

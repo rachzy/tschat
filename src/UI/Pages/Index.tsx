@@ -1,13 +1,27 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import Axios from "axios";
 
 import MainWrapper from "../Components/MainWrapper/MainWrapper";
 import MainContainer from "../Components/MainContainer/MainContainer";
 import MainContainerSection from "../Components/MainContainerSection/MainContainerSection";
 
-import { IState } from "../../App";
+import { IState as IProps } from "../../App";
+import { IPopupState } from "../../App";
 
-const Index: React.FC<IState> = ({ userData, setUserData }) => {
+import { GlobalServerContext } from "../../App";
+import { IGlobalServerContext } from "../../App";
+
+interface IProp {
+  userData: IProps["userData"],
+  setUserData: IProps["setUserData"],
+  setPopupState: React.Dispatch<React.SetStateAction<IPopupState>>
+}
+
+const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
+  const { serverUrl, serverStatus } =
+    useContext<IGlobalServerContext>(GlobalServerContext);
   const navigate = useNavigate();
 
   const [errorValue, setErrorValue] = useState("");
@@ -49,17 +63,48 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
     });
   };
 
-  const handleJoinButtonClick = () => {
-    if (userData.nick === "") {
-      return setErrorValue("This field is required");
+  const handleCreateRoomButtonClick = () => {
+    if (userData.nick.length < 4 || userData.nick.length > 20) {
+      return setErrorValue("Your nick has to be 4-20 characters length");
     }
-    navigate("/chat");
+
+    switch (serverStatus) {
+      case 200:
+        const createRoom = async() => {
+          try {
+            const { data } = await Axios.post(`${serverUrl}/createroom`, {
+              nickname: "",
+              pfp: "default.png",
+              color: userData.color
+            });
+  
+            switch(data.queryStatus) {
+              case 200:
+                navigate(`/chat?room=${data.result.roomId}`);
+                break;
+              default:
+                setPopupState({
+                  title: "Oops",
+                  description: `An error occured while trying to create your room: ${data.errors[0].message} (${data.errors[0].errno})`,
+                  buttonLabel: "OK",
+                  enabled: true
+                });
+            }
+          } catch(err) {
+  
+          }
+        }
+        createRoom();
+        break;
+      default:
+        navigate("/chat?template");
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if(e.key !== "Enter") return;
-    handleJoinButtonClick();
-  }
+    if (e.key !== "Enter") return;
+    handleCreateRoomButtonClick();
+  };
 
   return (
     <MainWrapper>
@@ -68,7 +113,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
           <h1>TS Chat</h1>
         </MainContainerSection>
         <MainContainerSection>
-          <img src="https://www.fiscalti.com.br/wp-content/uploads/2021/02/default-user-image.png" />
+          <img src={require("../../Imgs/default.png")} alt="user-pfp" />
         </MainContainerSection>
         <MainContainerSection>
           <p>Your Nickname:</p>
@@ -78,7 +123,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
             onChange={handleInputChange}
             value={userData.nick}
           />
-          <p style={{ color: "red" }}>{errorValue}</p>
+          <p className="error-message">{errorValue}</p>
         </MainContainerSection>
         <MainContainerSection>
           <p>Your color:</p>
@@ -126,7 +171,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
           </div>
         </MainContainerSection>
         <MainContainerSection>
-          <button onClick={handleJoinButtonClick}>Join</button>
+          <button onClick={handleCreateRoomButtonClick}>Create Room</button>
         </MainContainerSection>
       </MainContainer>
     </MainWrapper>
