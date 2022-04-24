@@ -22,11 +22,11 @@ const checkIfUserIsNotAlreadyInAnotherRoom = (req, res, afterFunction) => {
           return afterFunction();
         }
 
-        const resultToJson = JSON.parse(result[0].roomParticipants);
+        const participantsArray = JSON.parse(result[0].roomParticipants);
 
         let isInAnotherRoom = false;
-        resultToJson.forEach((participantUuid) => {
-          if (participantUuid !== UUID) return;
+        participantsArray.forEach((participant) => {
+          if (participant.uuid !== UUID) return;
           return (isInAnotherRoom = true);
         });
 
