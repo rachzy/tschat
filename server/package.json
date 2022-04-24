@@ -1,0 +1,21 @@
+{
+    "name": "tschat-server",
+    "description": "Rest API for TS Chat",
+    "authors": "rachzy",
+    "version": "1.0.0",
+    "main": "pathToMain",
+    "dependencies": {
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "crypto": "^1.0.1",
+        "express": "^4.17.3",
+        "helmet": "^5.0.2",
+        "mysql2": "^2.3.3",
+        "nodemon": "^2.0.15",
+        "query-string": "^7.1.1",
+        "ws": "^8.5.0"
+    },
+    "scripts": {
+        "devStart": "nodemon server.js"
+    }
+}
