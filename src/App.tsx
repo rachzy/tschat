@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useRef, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import Axios from "axios";
@@ -25,7 +25,8 @@ export interface IState {
 export interface IPopupState {
   title: string;
   description: string;
-  buttonLabel: string;
+  buttonLabel?: string;
+  isLoadingWindow: boolean;
   enabled: boolean;
 }
 
@@ -59,8 +60,31 @@ const App = () => {
     title: "",
     description: "",
     buttonLabel: "",
+    isLoadingWindow: false,
     enabled: false,
   });
+
+  const openPopup = ({
+    title,
+    description,
+    buttonLabel,
+    isLoadingWindow,
+  }: Omit<IPopupState, "enabled">) => {
+    setPopupState({
+      title: title,
+      description: description,
+      buttonLabel: buttonLabel,
+      isLoadingWindow: isLoadingWindow,
+      enabled: true,
+    });
+  };
+
+  const closePopup = () => {
+    setPopupState({
+      ...popupState,
+      enabled: false
+    })
+  };
 
   const [userData, setUserData] = useState<IUser>({
     nick: "",
@@ -83,13 +107,20 @@ const App = () => {
               <Index
                 userData={userData}
                 setUserData={setUserData}
-                setPopupState={setPopupState}
+                openPopup={openPopup}
+                closePopup={closePopup}
               />
             }
           />
           <Route
             path="/chat"
-            element={<Chat userData={userData} setUserData={setUserData} />}
+            element={
+              <Chat
+                userData={userData}
+                setUserData={setUserData}
+                openPopup={openPopup}
+              />
+            }
           />
         </Routes>
       </Router>

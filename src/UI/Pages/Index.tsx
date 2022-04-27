@@ -7,19 +7,29 @@ import MainWrapper from "../Components/MainWrapper/MainWrapper";
 import MainContainer from "../Components/MainContainer/MainContainer";
 import MainContainerSection from "../Components/MainContainerSection/MainContainerSection";
 
-import { IState as IProps } from "../../App";
-import { IPopupState } from "../../App";
+import { IState as IProps, IPopupState } from "../../App";
 
 import { GlobalServerContext } from "../../App";
 import { IGlobalServerContext } from "../../App";
 
 interface IProp {
-  userData: IProps["userData"],
-  setUserData: IProps["setUserData"],
-  setPopupState: React.Dispatch<React.SetStateAction<IPopupState>>
+  userData: IProps["userData"];
+  setUserData: IProps["setUserData"];
+  openPopup: ({
+    title,
+    description,
+    buttonLabel,
+    isLoadingWindow,
+  }: Omit<IPopupState, "enabled">) => void;
+  closePopup: () => void;
 }
 
-const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
+const Index: React.FC<IProp> = ({
+  userData,
+  setUserData,
+  openPopup,
+  closePopup,
+}) => {
   const { serverUrl, serverStatus } =
     useContext<IGlobalServerContext>(GlobalServerContext);
   const navigate = useNavigate();
@@ -35,7 +45,7 @@ const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
     });
   };
 
-  const handleUserColorChange = (
+  const handleColorClick = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
     const { id } = e.target as HTMLDivElement;
@@ -70,30 +80,41 @@ const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
 
     switch (serverStatus) {
       case 200:
-        const createRoom = async() => {
+        openPopup({
+          title: "Hold on",
+          description: "We're creating your room...",
+          isLoadingWindow: true,
+        });
+        const createRoom = async () => {
           try {
             const { data } = await Axios.post(`${serverUrl}/createroom`, {
-              nickname: "",
+              nickname: userData.nick,
               pfp: "default.png",
-              color: userData.color
+              color: userData.color,
             });
-  
-            switch(data.queryStatus) {
+
+            switch (data.queryStatus) {
               case 200:
-                navigate(`/chat?room=${data.result.roomId}`);
+                navigate(`/chat?roomId=${data.result.roomId}`);
+                closePopup();
                 break;
               default:
-                setPopupState({
+                openPopup({
                   title: "Oops",
-                  description: `An error occured while trying to create your room: ${data.errors[0].message} (${data.errors[0].errno})`,
+                  description: `An error occured while trying to create your room: ${data.errors[0].message}`,
                   buttonLabel: "OK",
-                  enabled: true
+                  isLoadingWindow: false,
                 });
             }
-          } catch(err) {
-  
+          } catch (err) {
+            openPopup({
+              title: "Oops",
+              description: `Sorry, an internal server error occured: ${err}`,
+              buttonLabel: "OK",
+              isLoadingWindow: false,
+            });
           }
-        }
+        };
         createRoom();
         break;
       default:
@@ -130,7 +151,7 @@ const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
           <div className="color-section">
             <div
               id="red"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "red" }}
               className="color"
             >
@@ -138,7 +159,7 @@ const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
             </div>
             <div
               id="blue"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "lightseagreen" }}
               className="color"
             >
@@ -146,7 +167,7 @@ const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
             </div>
             <div
               id="green"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "green" }}
               className="color"
             >
@@ -154,7 +175,7 @@ const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
             </div>
             <div
               id="yellow"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "rgb(185, 185, 15)" }}
               className="color"
             >
@@ -162,7 +183,7 @@ const Index: React.FC<IProp> = ({ userData, setUserData, setPopupState }) => {
             </div>
             <div
               id="white"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "white", color: "black" }}
               className="color clicked"
             >

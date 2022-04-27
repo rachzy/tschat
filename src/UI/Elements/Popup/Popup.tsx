@@ -1,14 +1,15 @@
 import React, { MutableRefObject, useEffect, useRef } from "react";
 import "./Popup.css";
 
-import {IPopupState} from "../../../App";
+import { IPopupState } from "../../../App";
+import Loader from "../Loader/Loader";
 
 interface IProp {
-    popupState: IPopupState,
-    setPopupState: React.Dispatch<React.SetStateAction<IPopupState>>
+  popupState: IPopupState;
+  setPopupState: React.Dispatch<React.SetStateAction<IPopupState>>;
 }
 
-const Popup: React.FC<IProp> = ({popupState, setPopupState}) => {
+const Popup: React.FC<IProp> = ({ popupState, setPopupState }) => {
   const popup = useRef() as MutableRefObject<HTMLDivElement>;
   const popupWindow = useRef() as MutableRefObject<HTMLDivElement>;
 
@@ -31,37 +32,35 @@ const Popup: React.FC<IProp> = ({popupState, setPopupState}) => {
   };
 
   useEffect(() => {
+    console.log(popupState.enabled);
     if (popupState.enabled) {
       return openPopup();
     }
     closePopup();
   }, [popupState]);
 
-  document.addEventListener("keydown", (e) => {
-    const { key } = e;
-
-    switch (key.toLowerCase()) {
-      case "o":
-        setPopupState({
-          ...popupState,
-          enabled: true,
-        });
-        break;
-      default:
-        setPopupState({
-          ...popupState,
-          enabled: false,
-        });
+  const renderPopupWindow = () => {
+    if (popupState.isLoadingWindow) {
+      return (
+        <div ref={popupWindow} className="popup-window">
+          <h1>{popupState.title}</h1>
+          <p>{popupState.description}</p>
+          <Loader />
+        </div>
+      );
     }
-  });
-
-  return (
-    <div ref={popup} className="popup">
+    return (
       <div ref={popupWindow} className="popup-window">
         <h1>{popupState.title}</h1>
         <p>{popupState.description}</p>
         <button onClick={closePopup}>{popupState.buttonLabel}</button>
       </div>
+    );
+  };
+
+  return (
+    <div ref={popup} className="popup">
+      {renderPopupWindow()}
     </div>
   );
 };

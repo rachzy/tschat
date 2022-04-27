@@ -1,6 +1,6 @@
 const callback = (res, result) => {
   res.send({
-    result: [result],
+    result: result,
     queryStatus: 200,
   });
 };

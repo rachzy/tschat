@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {IoSendSharp} from "react-icons/io5";
 
 import MainWrapper from "../Components/MainWrapper/MainWrapper";
@@ -7,7 +7,7 @@ import ChatContainer from "../Components/ChatContainer/ChatContainer";
 import ChatTopContainer from "../Components/ChatTopContainer/ChatTopContainer";
 import ChatBottomContainer from "../Components/ChatBottomContainer/ChatBottomContainer";
 
-import { IState as IProp, colors } from "../../App";
+import { IState as IProps, IPopupState, colors } from "../../App";
 import ChatContent from "../Components/ChatContent/ChatContent";
 
 interface IMessage {
@@ -24,13 +24,22 @@ export interface IState {
   message: IMessage;
 }
 
-const Chat: React.FC<IProp> = ({ userData, setUserData }) => {
+interface IProp {
+  userData: IProps["userData"];
+  setUserData: IProps["setUserData"];
+  openPopup: ({ title, description, buttonLabel, isLoadingWindow, }: Omit<IPopupState, "enabled">) => void
+}
+
+const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const [roomId, template] = [searchParams.get("roomId"), searchParams.get("template")];
 
   useEffect(() => {
-      if (userData?.nick === "" || !userData?.nick) {
-        navigate("/");
-      }
+      // if (userData?.nick === "" || !userData?.nick) {
+      //   navigate("/");
+      // }
   }, [navigate, userData])
 
   const [messageInputValue, setMessageInputValue] = useState("");
@@ -85,7 +94,7 @@ const Chat: React.FC<IProp> = ({ userData, setUserData }) => {
       <ChatContainer>
         <ChatTopContainer>
           <p>
-            Status: <span style={{ color: "forestgreen" }}>Online</span>
+            Room ID: <span style={{ color: "forestgreen" }}>Online</span>
           </p>
           <button onClick={handleLeaveButtonClick}>Leave</button>
         </ChatTopContainer>
