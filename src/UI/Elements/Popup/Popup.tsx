@@ -32,7 +32,6 @@ const Popup: React.FC<IProp> = ({ popupState, setPopupState }) => {
   };
 
   useEffect(() => {
-    console.log(popupState.enabled);
     if (popupState.enabled) {
       return openPopup();
     }
