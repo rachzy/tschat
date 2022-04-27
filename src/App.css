@@ -6,3 +6,7 @@
   background-color: #666;
   border-radius: 10px;
 }
+
+input {
+  outline: none;
+}

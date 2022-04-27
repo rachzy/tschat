@@ -1,13 +1,37 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import Axios from "axios";
 
 import MainWrapper from "../Components/MainWrapper/MainWrapper";
 import MainContainer from "../Components/MainContainer/MainContainer";
 import MainContainerSection from "../Components/MainContainerSection/MainContainerSection";
 
-import { IState } from "../../App";
+import { IState as IProps, IPopupState } from "../../App";
 
-const Index: React.FC<IState> = ({ userData, setUserData }) => {
+import { GlobalServerContext } from "../../App";
+import { IGlobalServerContext } from "../../App";
+
+interface IProp {
+  userData: IProps["userData"];
+  setUserData: IProps["setUserData"];
+  openPopup: ({
+    title,
+    description,
+    buttonLabel,
+    isLoadingWindow,
+  }: Omit<IPopupState, "enabled">) => void;
+  closePopup: () => void;
+}
+
+const Index: React.FC<IProp> = ({
+  userData,
+  setUserData,
+  openPopup,
+  closePopup,
+}) => {
+  const { serverUrl, serverStatus } =
+    useContext<IGlobalServerContext>(GlobalServerContext);
   const navigate = useNavigate();
 
   const [errorValue, setErrorValue] = useState("");
@@ -21,7 +45,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
     });
   };
 
-  const handleUserColorChange = (
+  const handleColorClick = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
     const { id } = e.target as HTMLDivElement;
@@ -49,17 +73,59 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
     });
   };
 
-  const handleJoinButtonClick = () => {
-    if (userData.nick === "") {
-      return setErrorValue("This field is required");
+  const handleCreateRoomButtonClick = () => {
+    if (userData.nick.length < 4 || userData.nick.length > 20) {
+      return setErrorValue("Your nick has to be 4-20 characters length");
     }
-    navigate("/chat");
+
+    switch (serverStatus) {
+      case 200:
+        openPopup({
+          title: "Hold on",
+          description: "We're creating your room...",
+          isLoadingWindow: true,
+        });
+        const createRoom = async () => {
+          try {
+            const { data } = await Axios.post(`${serverUrl}/createroom`, {
+              nickname: userData.nick,
+              pfp: "default.png",
+              color: userData.color,
+            });
+
+            switch (data.queryStatus) {
+              case 200:
+                navigate(`/chat?roomId=${data.result.roomId}`);
+                closePopup();
+                break;
+              default:
+                openPopup({
+                  title: "Oops",
+                  description: `An error occured while trying to create your room: ${data.errors[0].message}`,
+                  buttonLabel: "OK",
+                  isLoadingWindow: false,
+                });
+            }
+          } catch (err) {
+            openPopup({
+              title: "Oops",
+              description: `Sorry, an internal server error occured: ${err}`,
+              buttonLabel: "OK",
+              isLoadingWindow: false,
+            });
+          }
+        };
+        createRoom();
+        break;
+      default:
+        navigate("/chat?template");
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if(e.key !== "Enter") return;
-    handleJoinButtonClick();
-  }
+    if (e.key !== "Enter") return;
+    handleCreateRoomButtonClick();
+  };
 
   return (
     <MainWrapper>
@@ -68,7 +134,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
           <h1>TS Chat</h1>
         </MainContainerSection>
         <MainContainerSection>
-          <img src="https://www.fiscalti.com.br/wp-content/uploads/2021/02/default-user-image.png" />
+          <img src={require("../../Imgs/default.png")} alt="user-pfp" />
         </MainContainerSection>
         <MainContainerSection>
           <p>Your Nickname:</p>
@@ -78,14 +144,14 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
             onChange={handleInputChange}
             value={userData.nick}
           />
-          <p style={{ color: "red" }}>{errorValue}</p>
+          <p className="error-message">{errorValue}</p>
         </MainContainerSection>
         <MainContainerSection>
           <p>Your color:</p>
           <div className="color-section">
             <div
               id="red"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "red" }}
               className="color"
             >
@@ -93,7 +159,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
             </div>
             <div
               id="blue"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "lightseagreen" }}
               className="color"
             >
@@ -101,7 +167,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
             </div>
             <div
               id="green"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "green" }}
               className="color"
             >
@@ -109,7 +175,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
             </div>
             <div
               id="yellow"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "rgb(185, 185, 15)" }}
               className="color"
             >
@@ -117,7 +183,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
             </div>
             <div
               id="white"
-              onClick={handleUserColorChange}
+              onClick={handleColorClick}
               style={{ backgroundColor: "white", color: "black" }}
               className="color clicked"
             >
@@ -126,7 +192,7 @@ const Index: React.FC<IState> = ({ userData, setUserData }) => {
           </div>
         </MainContainerSection>
         <MainContainerSection>
-          <button onClick={handleJoinButtonClick}>Join</button>
+          <button onClick={handleCreateRoomButtonClick}>Create Room</button>
         </MainContainerSection>
       </MainContainer>
     </MainWrapper>
