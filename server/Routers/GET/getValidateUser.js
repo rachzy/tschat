@@ -26,7 +26,7 @@ router.get("/:roomId/", (req, res) => {
         return callbackError(res, { message: "UNKNOWN_ROOM" });
       }
 
-      const { participants } = result;
+      const { participants } = result[0];
 
       let isUserInThisRoom = false;
       participants.forEach((participant) => {
