@@ -52,6 +52,8 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
     searchParams.get("template"),
   ];
 
+  const [user, setUser] = useState(userData);
+
   useEffect(() => {
     if (!isLoaded || serverStatus === 0) return;
     const checkIfUserCanAccessTheChat = async () => {
@@ -75,37 +77,44 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
             { withCredentials: true }
           );
 
+          switch (data.queryStatus) {
+            case 200:
+              setUser(data.result.userData);
+              break;
+            default:
+              switch (data.errors[0].message) {
+                case "UNKNOWN_ROOM":
+                  navigate("/");
+                  openPopup({
+                    title: "Oops",
+                    description:
+                      "I'm sorry, but we couldn't find a room with this ID",
+                    buttonLabel: "OK",
+                    isLoadingWindow: false,
+                  });
+                  break;
+                case "INVALID_USER":
+                  navigate(`/join?id=${roomId}`);
+                  openPopup({
+                    title: "Hold on",
+                    description:
+                      "It looks like you're not in this room yet, but don't worry, you can still join! We redirected you to the join page",
+                    buttonLabel: "Got it",
+                    isLoadingWindow: false,
+                  });
+                  break;
+                default:
+                  navigate("/");
+                  openPopup({
+                    title: "Oops",
+                    description: `Sorry, an internal server error occured: ${data.errors[0].message}`,
+                    buttonLabel: "OK",
+                    isLoadingWindow: false,
+                  });
+              }
+          }
+
           if (data.queryStatus !== 200) {
-            switch (data.errors[0].message) {
-              case "UNKNOWN_ROOM":
-                navigate("/");
-                openPopup({
-                  title: "Oops",
-                  description:
-                    "I'm sorry, but we couldn't find a room with this ID",
-                  buttonLabel: "OK",
-                  isLoadingWindow: false,
-                });
-                break;
-              case "INVALID_USER":
-                navigate(`/join?id=${roomId}`);
-                openPopup({
-                  title: "Hold on",
-                  description:
-                    "It looks like you're not in this room yet, but don't worry, you can still join! We redirected you to the join page",
-                  buttonLabel: "Got it",
-                  isLoadingWindow: false,
-                });
-                break;
-              default:
-                navigate("/");
-                openPopup({
-                  title: "Oops",
-                  description: `Sorry, an internal server error occured: ${data.errors[0].message}`,
-                  buttonLabel: "OK",
-                  isLoadingWindow: false,
-                });
-            }
           }
         } catch (err) {
           openPopup({
@@ -136,13 +145,10 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
 
   const [messageInputValue, setMessageInputValue] = useState("");
 
-  const randomNumber = () => {
-    return Math.floor(Math.random() * 999999 - 100000);
-  };
   const [messages, setMessages] = useState<IMessage["messages"]>([]);
 
   useEffect(() => {
-    if(serverStatus !== 200) return;
+    if (serverStatus !== 200) return;
     const fetchMessages = async () => {
       try {
         const { data } = await Axios.get(`${serverUrl}/getmessages/${roomId}`, {
@@ -194,17 +200,79 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
 
   const handleSendButtonClick = () => {
     if (messageInputValue === "") return;
-    setMessages([
-      ...messages,
-      {
-        id: randomNumber(),
-        nick: userData.nick,
-        color: userData.color,
-        pfp: "default.png",
-        content: messageInputValue,
-      },
-    ]);
-    setMessageInputValue("");
+    const postMessage = async () => {
+      if (serverStatus !== 200) {
+        const randomNumber = () => {
+          return Math.floor(Math.random() * 999999 - 100000);
+        };
+        
+        setMessages([
+          ...messages,
+          {
+            id: randomNumber(),
+            nick: user.nick,
+            color: user.color,
+            pfp: "default.png",
+            content: messageInputValue,
+          },
+        ]);
+        return setMessageInputValue("");
+      }
+
+      try {
+        const { data } = await Axios.post(
+          `${serverUrl}/postmessage`,
+          {
+            roomId: roomId,
+            content: messageInputValue,
+          },
+          { withCredentials: true }
+        );
+
+        switch (data.queryStatus) {
+          case 200:
+            return setMessageInputValue("");
+          default:
+            switch (data.errors[0].message) {
+              case "UNKNOWN_ROOM":
+                navigate("/");
+                openPopup({
+                  title: "Oops",
+                  description:
+                    "It looks like this room doesn't exist or it was deleted. We redirected you to the main page",
+                  isLoadingWindow: false,
+                  buttonLabel: "OK",
+                });
+                break;
+              case "INVALID_USER":
+                navigate(`/join?id=${roomId}`);
+                openPopup({
+                  title: "Oops",
+                  description:
+                    "It looks like you're not a member in this room, but don't worry, you can still join on it",
+                  isLoadingWindow: false,
+                  buttonLabel: "OK",
+                });
+                break;
+              default:
+                openPopup({
+                  title: "Oops",
+                  description: `Sorry, an error occured while trying to send your message: ${data.errors[0].message}`,
+                  isLoadingWindow: false,
+                  buttonLabel: "OK",
+                });
+            }
+        }
+      } catch (err) {
+        return openPopup({
+          title: "Oops",
+          description: `Sorry, an error occurred while trying to send your message. ${err}`,
+          isLoadingWindow: false,
+          buttonLabel: "OK",
+        });
+      }
+    };
+    postMessage();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
