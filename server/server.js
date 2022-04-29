@@ -1,31 +1,28 @@
+require("dotenv").config();
+
 const PORT = process.env.PORT || 8000;
 const Express = require("express");
 const app = new Express();
 
 const cors = require("cors");
 const helmet = require("helmet");
-const mysql = require("mysql2");
+const mongoose = require("mongoose");
+
+mongoose.connect(process.env.DATABASE_URL);
+const db = mongoose.connection;
+
+db.on('error', (err) => {console.log(err)});
+db.once('open', () => {console.log("Connected to the Database")});
 
 app.use(Express.json());
 app.use(Express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({credentials: true, origin: true}));
 app.use(helmet());
 
-const db = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "root",
-  database: "tschat",
-});
-
-const callback = require("./globalFunctions/callback");
-const callbackError = require("./globalFunctions/callbackError");
+app.disable("x-powered-by");
 
 app.get("/api/", (req, res) => {
-  db.query("SELECT 1 + 1", (err, result) => {
-    if (err) res.sendStatus(500);
-    if (result) res.sendStatus(200);
-  });
+  res.sendStatus(200);
 });
 
 //POST
@@ -35,6 +32,11 @@ app.use("/api/createroom", postCreateRoom);
 
 const postJoinRoom = require("./Routers/POST/postJoinRoom");
 app.use("/api/joinroom", postJoinRoom);
+
+//GET
+
+const getValidateUsers = require("./Routers/GET/getValidateUser");
+app.use("/api/validateuser", getValidateUsers);
 
 app.listen(PORT, () => {
   console.log(`Server hosted on http://localhost:${PORT}`);

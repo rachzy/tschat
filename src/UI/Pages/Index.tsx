@@ -87,11 +87,17 @@ const Index: React.FC<IProp> = ({
         });
         const createRoom = async () => {
           try {
-            const { data } = await Axios.post(`${serverUrl}/createroom`, {
-              nickname: userData.nick,
-              pfp: "default.png",
-              color: userData.color,
-            });
+            const { data } = await Axios.post(
+              `${serverUrl}/createroom`,
+              {
+                nickname: userData.nick,
+                pfp: "default.png",
+                color: userData.color,
+              },
+              {
+                withCredentials: true,
+              }
+            );
 
             switch (data.queryStatus) {
               case 200:
