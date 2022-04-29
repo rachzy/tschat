@@ -33,6 +33,9 @@ app.use("/api/createroom", postCreateRoom);
 const postJoinRoom = require("./Routers/POST/postJoinRoom");
 app.use("/api/joinroom", postJoinRoom);
 
+const postMessage = require("./Routers/POST/postMessage");
+app.use("/api/postmessage", postMessage);
+
 //GET
 
 const getValidateUsers = require("./Routers/GET/getValidateUser");

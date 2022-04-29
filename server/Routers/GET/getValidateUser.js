@@ -30,13 +30,20 @@ router.get("/:roomId/", (req, res) => {
       const { participants } = getRoom[0];
 
       let isUserInThisRoom = false;
+      let userData;
       participants.forEach((participant) => {
-        if (participant.uuid === UUID) return (isUserInThisRoom = true);
+        if (participant.uuid === UUID) {
+          userData = {
+            nick: participant.nickname,
+            color: participant.color
+          }
+          return (isUserInThisRoom = true);
+        }
       });
 
       if (isUserInThisRoom) {
         return callback(res, {
-          message: "User is valid and it's allowed to chat!",
+          userData: userData
         });
       }
       return callbackError(res, { message: "INVALID_USER" });
