@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {IoSendSharp} from "react-icons/io5";
+import { IoSendSharp } from "react-icons/io5";
+
+import Axios from "axios";
 
 import MainWrapper from "../Components/MainWrapper/MainWrapper";
 import ChatContainer from "../Components/ChatContainer/ChatContainer";
@@ -9,6 +11,8 @@ import ChatBottomContainer from "../Components/ChatBottomContainer/ChatBottomCon
 
 import { IState as IProps, IPopupState, colors } from "../../App";
 import ChatContent from "../Components/ChatContent/ChatContent";
+
+import { GlobalServerContext } from "../../App";
 
 interface IMessage {
   messages: {
@@ -27,20 +31,106 @@ export interface IState {
 interface IProp {
   userData: IProps["userData"];
   setUserData: IProps["setUserData"];
-  openPopup: ({ title, description, buttonLabel, isLoadingWindow, }: Omit<IPopupState, "enabled">) => void
+  openPopup: ({
+    title,
+    description,
+    buttonLabel,
+    isLoadingWindow,
+  }: Omit<IPopupState, "enabled">) => void;
 }
 
 const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [roomId, template] = [searchParams.get("roomId"), searchParams.get("template")];
+  const { serverUrl, serverStatus } = useContext(GlobalServerContext);
+
+  const [roomId, template] = [
+    searchParams.get("roomId"),
+    searchParams.get("template"),
+  ];
 
   useEffect(() => {
-      // if (userData?.nick === "" || !userData?.nick) {
-      //   navigate("/");
+    const checkIfUserCanAccessTheChat = async () => {
+      console.log("executed");
+      if (!roomId && !template) {
+        navigate("/");
+        return openPopup({
+          title: "Oops",
+          description: "No room ID was provided",
+          buttonLabel: "OK",
+          isLoadingWindow: false,
+        });
+      }
+
+      if (serverStatus !== 200) return;
+      // if (roomId) {
+      //   try {
+      //     const { data } = await Axios.get(
+      //       `${serverUrl}/validateuser/${roomId}`
+      //     );
+
+      //     switch (data.queryStatus) {
+      //       case 200:
+      //         console.log(data.message);
+      //         break;
+      //       default:
+      //         switch (data.errors[0].message) {
+      //           case "UNKNOWN_ROOM":
+      //             navigate("/");
+      //             openPopup({
+      //               title: "Oops",
+      //               description:
+      //                 "I'm sorry, but we couldn't find a room with this ID",
+      //               buttonLabel: "OK",
+      //               isLoadingWindow: false,
+      //             });
+      //             break;
+      //           case "INVALID_USER":
+      //             navigate(`join?id=${roomId}`);
+      //             openPopup({
+      //               title: "Hold on",
+      //               description:
+      //                 "It looks like you're not in this room yet, but don't worry, you can still join! We redirected you to the join page",
+      //               buttonLabel: "Got it",
+      //               isLoadingWindow: false,
+      //             });
+      //             break;
+      //           default:
+      //             navigate("/");
+      //             openPopup({
+      //               title: "Oops",
+      //               description: `Sorry, an internal server error occured: ${data.errors[0].message}`,
+      //               buttonLabel: "OK",
+      //               isLoadingWindow: false,
+      //             });
+      //         }
+      //     }
+      //   } catch (err) {
+      //     openPopup({
+      //       title: "Oops",
+      //       description: `Sorry, an internal server error occured. ${err}`,
+      //       buttonLabel: "OK",
+      //       isLoadingWindow: false,
+      //     });
+      //   }
+      //   return;
       // }
-  }, [navigate, userData])
+
+      if (userData?.nick === "" || !userData?.nick) {
+        navigate("/");
+      }
+    };
+    checkIfUserCanAccessTheChat();
+  }, [
+    openPopup,
+    roomId,
+    template,
+    serverStatus,
+    serverUrl,
+    navigate,
+    userData,
+  ]);
 
   const [messageInputValue, setMessageInputValue] = useState("");
   const randomNumber = () => {
@@ -106,7 +196,9 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
             value={messageInputValue}
             placeholder="Type your message here..."
           />
-          <button onClick={handleSendButtonClick}><IoSendSharp /></button>
+          <button onClick={handleSendButtonClick}>
+            <IoSendSharp />
+          </button>
         </ChatBottomContainer>
       </ChatContainer>
     </MainWrapper>

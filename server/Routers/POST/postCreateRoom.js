@@ -11,6 +11,8 @@ const validateParams = require("../../globalFunctions/validateParams");
 const authUUID = require("../../auth/authUUID");
 const checkIfUserIsNotAlreadyInAnotherRoom = require("../../auth/checkIfUserIsNotAlreadyInAnotherRoom");
 
+const Rooms = require("../../models/rooms");
+
 const callback = require("../../globalFunctions/callback");
 const callbackError = require("../../globalFunctions/callbackError");
 const server = require("../../server");
@@ -19,74 +21,58 @@ router.post("/", (req, res) => {
   let UUID = authUUID(req, res);
   let { nickname, pfp, color } = req.body;
 
-  if(validateParams(res, nickname, pfp, color) === false) return;
+  if (validateParams(res, nickname, pfp, color) === false) return;
 
   const createRoom = () => {
     let canContinue = true;
     let roomId = generateRandomString("string", 5);
 
-    const checkIfRoomIdIsAvailable = () => {
+    const checkIfRoomIdIsAvailable = async () => {
       //The name "ROOMS" is a reserved name
       if (roomId === "ROOMS") {
         return (roomId = generateRandomString("string", 5));
       }
 
-      server.db.query(
-        "SELECT roomId FROM rooms WHERE roomId = ?",
-        [roomId],
-        (err, result) => {
-          if (err) {
-            clearInterval(loopChecker);
-            return callbackError({ message: err.message, errno: err.errno });
-          }
+      try {
+        const result = await Rooms.find({ roomId: roomId }, { roomId: 1 });
 
-          if (result.length !== 0) {
-            return (roomId = generateRandomString("string", 5));
-          }
-
-          return (canContinue = true);
+        if (result.length !== 0) {
+          return (roomId = generateRandomString("string", 5));
         }
-      );
+
+        return (canContinue = true);
+      } catch (err) {
+        callbackError(res, { message: err.message, errno: err.code });
+      }
     };
     checkIfRoomIdIsAvailable();
 
-    const insertRoom = () => {
+    const insertRoom = async () => {
       const participantsArray = [
         {
           uuid: UUID,
           nickname: nickname,
           pfp: pfp,
           color: color,
+          host: true
         },
       ];
 
-      server.db.query(
-        "INSERT INTO rooms (roomId, roomParticipants, roomHostUuid) VALUES (?, ?, ?)",
-        [roomId, `${participantsArray.toString()}`, UUID],
-        (err) => {
-          if (err) {
-            return callbackError(res, {
-              message: err.message,
-              errno: err.errno,
-            });
-          }
-          server.db.query(getRoomTemplate(roomId), (err2) => {
-            if (err2) {
-              return callbackError(res, {
-                errno: err2.errno,
-                code: err2.code,
-              });
-            }
-            const maxAge = Number(60 * 60 * 24 * 30 * 2);
-            res.cookie("CURRENTROOM", roomId, {
-              maxAge: maxAge,
-              httpOnly: true,
-            });
+      const token = generateRandomString("string", 20);
 
-            callback(res, { roomId: roomId });
-          });
-        }
-      );
+      const Room = new Rooms({
+        roomId: roomId,
+        participants: participantsArray,
+        token: token,
+      });
+
+      try {
+        await Room.save();
+        await server.db.createCollection(roomId);
+        callback(res, { roomId: roomId });
+      } catch (err) {
+        callbackError(res, { message: err.message, errno: err.code });
+      }
     };
 
     //Execute the function every 100ms
