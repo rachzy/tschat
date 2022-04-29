@@ -4,7 +4,7 @@ const generateRandomString = require("../globalFunctions/generateRandomString");
 const authUUID = (req, res) => {
   let { UUID } = req.cookies;
 
-  if (!UUID || UUID === "") {
+  if (!UUID) {
     const generateUuid = generateRandomString("string", 25);
     const maxAge = Number(60 * 60 * 24 * 30 * 2);
 

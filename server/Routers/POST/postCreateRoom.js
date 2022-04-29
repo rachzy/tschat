@@ -62,7 +62,7 @@ router.post("/", (req, res) => {
       const defaultMessage = [{
         id: generateRandomString("number", 10),
         user: "BOT",
-        nickname: "TSB",
+        nick: "TSB",
         pfp: "bot.png",
         color: "white",
         content: "I'm the TS Bot, have fun in your chat room!"

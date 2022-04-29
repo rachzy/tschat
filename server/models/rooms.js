@@ -14,7 +14,7 @@ const messages = [
   {
     id: Number,
     user: String,
-    nickname: String,
+    nick: String,
     pfp: String,
     color: "red" | "blue" | "green" | "yellow" | "white",
     content: String,
