@@ -5,7 +5,6 @@ const cookieParser = require("cookie-parser");
 router.use(cookieParser());
 
 const generateRandomString = require("../../globalFunctions/generateRandomString");
-const getRoomTemplate = require("../../globalFunctions/getRoomTemplate");
 const validateParams = require("../../globalFunctions/validateParams");
 
 const authUUID = require("../../auth/authUUID");
@@ -69,6 +68,10 @@ router.post("/", (req, res) => {
       try {
         await Room.save();
         await server.db.createCollection(roomId);
+
+        const maxAge = Number(60 * 60 * 24 * 7);
+        res.cookie("CURRENTROOM", roomId, { maxAge: maxAge, httpOnly: true });
+
         callback(res, { roomId: roomId });
       } catch (err) {
         callbackError(res, { message: err.message, errno: err.code });

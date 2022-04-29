@@ -1,10 +1,8 @@
 const generateRandomString = require("../globalFunctions/generateRandomString");
 
 //If the UUID doesn't exist, generate one
-const authUUID = (req, res, UUID) => {
-  if (!UUID) {
-    UUID = req.cookies.UUID;
-  }
+const authUUID = (req, res) => {
+  let { UUID } = req.cookies;
 
   if (!UUID || UUID === "") {
     const generateUuid = generateRandomString("string", 25);
