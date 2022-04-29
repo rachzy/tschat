@@ -10,13 +10,14 @@ const checkIfUserIsNotAlreadyInAnotherRoom = async (
 
   if (CURRENTROOM) {
     try {
-      const result = await Rooms.find(
+      const getRoom = await Rooms.find(
         { roomId: CURRENTROOM },
         { participants: 1 }
       );
 
-      if (result.length !== 0) {
-        const { participants } = result[0];
+      //If the room exists
+      if (getRoom.length !== 0) {
+        const { participants } = getRoom[0];
 
         let isInAnotherRoom = false;
         participants.forEach((participant) => {

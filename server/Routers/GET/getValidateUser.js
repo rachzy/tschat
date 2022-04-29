@@ -15,18 +15,19 @@ router.get("/:roomId/", (req, res) => {
   let UUID = authUUID(req, res);
   const { roomId } = req.params;
 
-  if (!UUID || !roomId)
+  if (!UUID || !roomId) {
     return callbackError(res, { message: "INVALID_PARAMS" });
+  }
 
   const validateUser = async() => {
     try {
-      const result = await Rooms.find({roomId: roomId}, {participants: 1});
+      const getRoom = await Rooms.find({roomId: roomId}, {participants: 1});
 
-      if(result.length === 0) {
+      if(getRoom.length === 0) {
         return callbackError(res, { message: "UNKNOWN_ROOM" });
       }
 
-      const { participants } = result[0];
+      const { participants } = getRoom[0];
 
       let isUserInThisRoom = false;
       participants.forEach((participant) => {

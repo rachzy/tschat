@@ -1,3 +1,5 @@
+//Automatic callback for errors
+
 const callbackError = (res, err) => {
   res.send({
     errors: [err],

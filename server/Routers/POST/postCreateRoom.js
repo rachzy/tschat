@@ -33,9 +33,9 @@ router.post("/", (req, res) => {
       }
 
       try {
-        const result = await Rooms.find({ roomId: roomId }, { roomId: 1 });
+        const getRoom = await Rooms.find({ roomId: roomId }, { roomId: 1 });
 
-        if (result.length !== 0) {
+        if (getRoom.length !== 0) {
           return (roomId = generateRandomString("string", 5));
         }
 
