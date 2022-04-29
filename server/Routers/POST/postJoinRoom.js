@@ -9,9 +9,7 @@ const validateParams = require("../../globalFunctions/validateParams");
 const authUUID = require("../../auth/authUUID");
 const checkIfUserIsNotAlreadyInAnotherRoom = require("../../auth/checkIfUserIsNotAlreadyInAnotherRoom");
 
-const callback = require("../../globalFunctions/callback");
 const callbackError = require("../../globalFunctions/callbackError");
-const server = require("../../server");
 
 const Rooms = require("../../models/rooms");
 
@@ -23,16 +21,16 @@ router.post("/", (req, res) => {
 
   const joinRoom = async () => {
     try {
-      const result = await Rooms.find(
+      const getRoom = await Rooms.find(
         { roomId: roomId },
         { roomParticipants: 1 }
       );
 
-      if (result.length === 0) {
+      if (getRoom.length === 0) {
         return callbackError(res, { message: "ROOM_NOT_FOUND" });
       }
 
-      const { participants } = result;
+      const { participants } = getRoom;
 
       let canContinue = true;
       participants.forEach((participant) => {

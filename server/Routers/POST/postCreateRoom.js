@@ -5,7 +5,6 @@ const cookieParser = require("cookie-parser");
 router.use(cookieParser());
 
 const generateRandomString = require("../../globalFunctions/generateRandomString");
-const getRoomTemplate = require("../../globalFunctions/getRoomTemplate");
 const validateParams = require("../../globalFunctions/validateParams");
 
 const authUUID = require("../../auth/authUUID");
@@ -34,9 +33,9 @@ router.post("/", (req, res) => {
       }
 
       try {
-        const result = await Rooms.find({ roomId: roomId }, { roomId: 1 });
+        const getRoom = await Rooms.find({ roomId: roomId }, { roomId: 1 });
 
-        if (result.length !== 0) {
+        if (getRoom.length !== 0) {
           return (roomId = generateRandomString("string", 5));
         }
 
@@ -60,15 +59,29 @@ router.post("/", (req, res) => {
 
       const token = generateRandomString("string", 20);
 
+      const defaultMessage = [{
+        id: generateRandomString("number", 10),
+        user: "BOT",
+        nick: "TSB",
+        pfp: "bot.png",
+        color: "white",
+        content: "I'm the TS Bot, have fun in your chat room!"
+      }]
+
       const Room = new Rooms({
         roomId: roomId,
         participants: participantsArray,
+        messages: defaultMessage,
         token: token,
       });
 
       try {
         await Room.save();
         await server.db.createCollection(roomId);
+
+        const maxAge = Number(60 * 60 * 24 * 7);
+        res.cookie("CURRENTROOM", roomId, { maxAge: maxAge, httpOnly: true });
+
         callback(res, { roomId: roomId });
       } catch (err) {
         callbackError(res, { message: err.message, errno: err.code });

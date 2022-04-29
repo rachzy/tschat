@@ -1,3 +1,5 @@
+//Default callback
+
 const callback = (res, result) => {
   res.send({
     result: result,

@@ -41,19 +41,22 @@ interface IProp {
 
 const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams(window.location.search);
+
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const { serverUrl, serverStatus } = useContext(GlobalServerContext);
 
   const [roomId, template] = [
-    searchParams.get("roomId"),
+    searchParams.get("id"),
     searchParams.get("template"),
   ];
 
   useEffect(() => {
+    if (!isLoaded || serverStatus === 0) return;
     const checkIfUserCanAccessTheChat = async () => {
-      console.log("executed");
       if (!roomId && !template) {
+        console.log("No params");
         navigate("/");
         return openPopup({
           title: "Oops",
@@ -63,59 +66,57 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
         });
       }
 
-      if (serverStatus !== 200) return;
-      // if (roomId) {
-      //   try {
-      //     const { data } = await Axios.get(
-      //       `${serverUrl}/validateuser/${roomId}`
-      //     );
+      if (roomId) {
+        if (serverStatus !== 200) return navigate("/chat?template");
 
-      //     switch (data.queryStatus) {
-      //       case 200:
-      //         console.log(data.message);
-      //         break;
-      //       default:
-      //         switch (data.errors[0].message) {
-      //           case "UNKNOWN_ROOM":
-      //             navigate("/");
-      //             openPopup({
-      //               title: "Oops",
-      //               description:
-      //                 "I'm sorry, but we couldn't find a room with this ID",
-      //               buttonLabel: "OK",
-      //               isLoadingWindow: false,
-      //             });
-      //             break;
-      //           case "INVALID_USER":
-      //             navigate(`join?id=${roomId}`);
-      //             openPopup({
-      //               title: "Hold on",
-      //               description:
-      //                 "It looks like you're not in this room yet, but don't worry, you can still join! We redirected you to the join page",
-      //               buttonLabel: "Got it",
-      //               isLoadingWindow: false,
-      //             });
-      //             break;
-      //           default:
-      //             navigate("/");
-      //             openPopup({
-      //               title: "Oops",
-      //               description: `Sorry, an internal server error occured: ${data.errors[0].message}`,
-      //               buttonLabel: "OK",
-      //               isLoadingWindow: false,
-      //             });
-      //         }
-      //     }
-      //   } catch (err) {
-      //     openPopup({
-      //       title: "Oops",
-      //       description: `Sorry, an internal server error occured. ${err}`,
-      //       buttonLabel: "OK",
-      //       isLoadingWindow: false,
-      //     });
-      //   }
-      //   return;
-      // }
+        try {
+          const { data } = await Axios.get(
+            `${serverUrl}/validateuser/${roomId}`,
+            { withCredentials: true }
+          );
+
+          if (data.queryStatus !== 200) {
+            switch (data.errors[0].message) {
+              case "UNKNOWN_ROOM":
+                navigate("/");
+                openPopup({
+                  title: "Oops",
+                  description:
+                    "I'm sorry, but we couldn't find a room with this ID",
+                  buttonLabel: "OK",
+                  isLoadingWindow: false,
+                });
+                break;
+              case "INVALID_USER":
+                navigate(`/join?id=${roomId}`);
+                openPopup({
+                  title: "Hold on",
+                  description:
+                    "It looks like you're not in this room yet, but don't worry, you can still join! We redirected you to the join page",
+                  buttonLabel: "Got it",
+                  isLoadingWindow: false,
+                });
+                break;
+              default:
+                navigate("/");
+                openPopup({
+                  title: "Oops",
+                  description: `Sorry, an internal server error occured: ${data.errors[0].message}`,
+                  buttonLabel: "OK",
+                  isLoadingWindow: false,
+                });
+            }
+          }
+        } catch (err) {
+          openPopup({
+            title: "Oops",
+            description: `Sorry, an internal server error occured. ${err}`,
+            buttonLabel: "OK",
+            isLoadingWindow: false,
+          });
+        }
+        return;
+      }
 
       if (userData?.nick === "" || !userData?.nick) {
         navigate("/");
@@ -123,6 +124,7 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
     };
     checkIfUserCanAccessTheChat();
   }, [
+    isLoaded,
     openPopup,
     roomId,
     template,
@@ -133,6 +135,9 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
   ]);
 
   const [messageInputValue, setMessageInputValue] = useState("");
+
+
+
   const randomNumber = () => {
     return Math.floor(Math.random() * 999999 - 100000);
   };
@@ -141,7 +146,7 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
       id: randomNumber(),
       nick: "BOT",
       color: "white",
-      pfp: "https://static.thenounproject.com/png/415507-200.png",
+      pfp: "bot.png",
       content: "I'm the TS Bot, have fun in your chat room!",
     },
   ]);
@@ -159,7 +164,7 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
         id: randomNumber(),
         nick: userData.nick,
         color: userData.color,
-        pfp: "https://www.fiscalti.com.br/wp-content/uploads/2021/02/default-user-image.png",
+        pfp: "default.png",
         content: messageInputValue,
       },
     ]);
@@ -181,10 +186,10 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
 
   return (
     <MainWrapper>
-      <ChatContainer>
+      <ChatContainer setIsLoaded={setIsLoaded}>
         <ChatTopContainer>
           <p>
-            Room ID: <span style={{ color: "forestgreen" }}>Online</span>
+            Room ID: <span style={{ color: "forestgreen" }}>{roomId}</span>
           </p>
           <button onClick={handleLeaveButtonClick}>Leave</button>
         </ChatTopContainer>

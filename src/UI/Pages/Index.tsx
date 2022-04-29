@@ -101,16 +101,31 @@ const Index: React.FC<IProp> = ({
 
             switch (data.queryStatus) {
               case 200:
-                navigate(`/chat?roomId=${data.result.roomId}`);
+                const { roomId } = data.result;
+                navigate(`/chat?id=${roomId}`);
                 closePopup();
                 break;
               default:
-                openPopup({
-                  title: "Oops",
-                  description: `An error occured while trying to create your room: ${data.errors[0].message}`,
-                  buttonLabel: "OK",
-                  isLoadingWindow: false,
-                });
+                const error = data.errors[0];
+                switch (error.message) {
+                  case "USER_IS_ALREADY_IN_ANOTHER_ROOM":
+                    openPopup({
+                      title: "Hey",
+                      description:
+                        "You're already in another room, we're redirecting you to it",
+                      isLoadingWindow: false,
+                      buttonLabel: "OK",
+                    });
+                    navigate(`/chat?id=${error.roomId}`);
+                    break;
+                  default:
+                    openPopup({
+                      title: "Oops",
+                      description: `An error occured while trying to create your room: ${error.message}`,
+                      buttonLabel: "OK",
+                      isLoadingWindow: false,
+                    });
+                }
             }
           } catch (err) {
             openPopup({

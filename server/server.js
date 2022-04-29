@@ -38,6 +38,9 @@ app.use("/api/joinroom", postJoinRoom);
 const getValidateUsers = require("./Routers/GET/getValidateUser");
 app.use("/api/validateuser", getValidateUsers);
 
+const getMessages = require("./Routers/GET/getMessages");
+app.use("/api/getmessages", getMessages);
+
 app.listen(PORT, () => {
   console.log(`Server hosted on http://localhost:${PORT}`);
 });

@@ -42,7 +42,7 @@ export const GlobalServerContext = createContext<IGlobalServerContext>({
 
 const App = () => {
   const serverUrl = "http://localhost:8000/api";
-  const [serverStatus, setServerStatus] = useState<number>(404);
+  const [serverStatus, setServerStatus] = useState<number>(0);
 
   useEffect(() => {
     const checkServerConnection = async () => {
@@ -82,6 +82,7 @@ const App = () => {
   const closePopup = () => {
     setPopupState({
       ...popupState,
+      isLoadingWindow: true,
       enabled: false
     })
   };

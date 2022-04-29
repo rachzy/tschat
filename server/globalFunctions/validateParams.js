@@ -1,3 +1,5 @@
+//Validate params for creating rooms
+
 const callbackError = require("../globalFunctions/callbackError");
 
 const validateParams = (res, nickname, pfp, color) => {
