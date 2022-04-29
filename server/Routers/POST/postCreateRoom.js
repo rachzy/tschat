@@ -59,9 +59,19 @@ router.post("/", (req, res) => {
 
       const token = generateRandomString("string", 20);
 
+      const defaultMessage = [{
+        id: generateRandomString("number", 10),
+        user: "BOT",
+        nickname: "TSB",
+        pfp: "bot.png",
+        color: "white",
+        content: "I'm the TS Bot, have fun in your chat room!"
+      }]
+
       const Room = new Rooms({
         roomId: roomId,
         participants: participantsArray,
+        messages: defaultMessage,
         token: token,
       });
 

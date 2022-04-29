@@ -10,14 +10,29 @@ const participant = [
   },
 ];
 
+const messages = [
+  {
+    id: Number,
+    user: String,
+    nickname: String,
+    pfp: String,
+    color: "red" | "blue" | "green" | "yellow" | "white",
+    content: String,
+  },
+];
+
 const roomsSchema = new Mongoose.Schema({
   roomId: {
     type: String,
     required: true,
   },
-    participants: {
+  participants: {
     type: participant,
     required: true,
+  },
+  messages: {
+    type: messages,
+    required: false,
   },
   token: {
     type: String,
