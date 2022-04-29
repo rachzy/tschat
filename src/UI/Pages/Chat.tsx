@@ -136,20 +136,56 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
 
   const [messageInputValue, setMessageInputValue] = useState("");
 
-
-
   const randomNumber = () => {
     return Math.floor(Math.random() * 999999 - 100000);
   };
-  const [messages, setMessages] = useState<IMessage["messages"]>([
-    {
-      id: randomNumber(),
-      nick: "BOT",
-      color: "white",
-      pfp: "bot.png",
-      content: "I'm the TS Bot, have fun in your chat room!",
-    },
-  ]);
+  const [messages, setMessages] = useState<IMessage["messages"]>([]);
+
+  useEffect(() => {
+    if(serverStatus !== 200) return;
+    const fetchMessages = async () => {
+      try {
+        const { data } = await Axios.get(`${serverUrl}/getmessages/${roomId}`, {
+          withCredentials: true,
+        });
+
+        switch (data.queryStatus) {
+          case 200:
+            const { messages } = data.result;
+            setMessages(messages);
+            break;
+          default:
+            switch (data.errors[0].message) {
+              case "NOT_ALLOWED":
+                openPopup({
+                  title: "Oops",
+                  description:
+                    "You're not allowed to see the messages of this room since you're not a member of it",
+                  isLoadingWindow: false,
+                  buttonLabel: "OK",
+                });
+                navigate(`/join?id=${roomId}`);
+                break;
+              default:
+                openPopup({
+                  title: "Oops",
+                  description: `An error occured while trying to fetch the messages: ${data.errors[0].message}`,
+                  isLoadingWindow: false,
+                  buttonLabel: "OK",
+                });
+            }
+        }
+      } catch (err) {
+        openPopup({
+          title: "Oops",
+          description: `Sorry, an internal server error occurred. ${err}`,
+          isLoadingWindow: false,
+          buttonLabel: "OK",
+        });
+      }
+    };
+    fetchMessages();
+  }, [isLoaded, navigate, openPopup, roomId, serverStatus, serverUrl]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
