@@ -44,6 +44,9 @@ app.use("/api/validateuser", getValidateUsers);
 const getMessages = require("./Routers/GET/getMessages");
 app.use("/api/getmessages", getMessages);
 
+const getCurrentRoom = require("./Routers/GET/getCurrentRoom");
+app.use("/api/currentroom", getCurrentRoom);
+
 app.listen(PORT, () => {
   console.log(`Server hosted on http://localhost:${PORT}`);
 });
