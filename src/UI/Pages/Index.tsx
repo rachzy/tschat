@@ -188,41 +188,32 @@ const Index: React.FC<IProp> = ({
               onClick={handleColorClick}
               style={{ backgroundColor: "red" }}
               className="color"
-            >
-              Red
-            </div>
+            />
             <div
               id="blue"
               onClick={handleColorClick}
               style={{ backgroundColor: "lightseagreen" }}
               className="color"
-            >
-              Blue
-            </div>
+            />
             <div
               id="green"
               onClick={handleColorClick}
               style={{ backgroundColor: "green" }}
               className="color"
-            >
-              Green
-            </div>
+            />
+
             <div
               id="yellow"
               onClick={handleColorClick}
               style={{ backgroundColor: "rgb(185, 185, 15)" }}
               className="color"
-            >
-              Yellow
-            </div>
+            />
             <div
               id="white"
               onClick={handleColorClick}
               style={{ backgroundColor: "white", color: "black" }}
               className="color clicked"
-            >
-              White
-            </div>
+            />
           </div>
         </MainContainerSection>
         <MainContainerSection>
