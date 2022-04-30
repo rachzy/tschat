@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Axios from "axios";
@@ -33,6 +33,19 @@ const Index: React.FC<IProp> = ({
   const { serverUrl, serverStatus } =
     useContext<IGlobalServerContext>(GlobalServerContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (serverStatus !== 200) return;
+    const checkIfUserIsAlreadyInARoom = async () => {
+      const { data } = await Axios.get(`${serverUrl}/currentroom`, {
+        withCredentials: true,
+      });
+
+      if (data.queryStatus !== 200) return;
+      navigate(`/chat?id=${data.result.roomId}`);
+    };
+    checkIfUserIsAlreadyInARoom();
+  }, [serverStatus, serverUrl, navigate]);
 
   const [errorValue, setErrorValue] = useState("");
 
