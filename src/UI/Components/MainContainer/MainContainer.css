@@ -25,13 +25,17 @@
 
 .main-container button {
     background: linear-gradient(to left, rgb(3, 105, 17), rgb(5, 168, 32));
+    color: white;
 
+    font-size: medium;
+
+    width: 80%;
     margin-top: 20px;
     padding: 8px;
-    width: 80%;
+
     border-radius: 5px;
     border: none;
-    color: white;
+
     cursor: pointer;
     transition: 0.2s all;
 }
@@ -46,10 +50,12 @@
 
 .main-container .color {
     margin-left: 10px;
-    height: fit-content;
+    width: 20px;
+    height: 20px;
     padding: 5px;
     cursor: pointer;
-    transition: 0.2s all;
+    border-radius: 1vh;
+    transition: 0.1s all;
 }
 
 .main-container .color:hover {

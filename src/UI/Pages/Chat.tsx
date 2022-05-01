@@ -54,101 +54,12 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
 
   const [user, setUser] = useState(userData);
 
-  useEffect(() => {
-    if (!isLoaded || serverStatus === 0) return;
-    const checkIfUserCanAccessTheChat = async () => {
-      if (!roomId && !template) {
-        console.log("No params");
-        navigate("/");
-        return openPopup({
-          title: "Oops",
-          description: "No room ID was provided",
-          buttonLabel: "OK",
-          isLoadingWindow: false,
-        });
-      }
-
-      if (roomId) {
-        if (serverStatus !== 200) return navigate("/chat?template");
-
-        try {
-          const { data } = await Axios.get(
-            `${serverUrl}/validateuser/${roomId}`,
-            { withCredentials: true }
-          );
-
-          switch (data.queryStatus) {
-            case 200:
-              setUser(data.result.userData);
-              break;
-            default:
-              switch (data.errors[0].message) {
-                case "UNKNOWN_ROOM":
-                  navigate("/");
-                  openPopup({
-                    title: "Oops",
-                    description:
-                      "I'm sorry, but we couldn't find a room with this ID",
-                    buttonLabel: "OK",
-                    isLoadingWindow: false,
-                  });
-                  break;
-                case "INVALID_USER":
-                  navigate(`/join?id=${roomId}`);
-                  openPopup({
-                    title: "Hold on",
-                    description:
-                      "It looks like you're not in this room yet, but don't worry, you can still join! We redirected you to the join page",
-                    buttonLabel: "Got it",
-                    isLoadingWindow: false,
-                  });
-                  break;
-                default:
-                  navigate("/");
-                  openPopup({
-                    title: "Oops",
-                    description: `Sorry, an internal server error occured: ${data.errors[0].message}`,
-                    buttonLabel: "OK",
-                    isLoadingWindow: false,
-                  });
-              }
-          }
-
-          if (data.queryStatus !== 200) {
-          }
-        } catch (err) {
-          openPopup({
-            title: "Oops",
-            description: `Sorry, an internal server error occured. ${err}`,
-            buttonLabel: "OK",
-            isLoadingWindow: false,
-          });
-        }
-        return;
-      }
-
-      if (userData?.nick === "" || !userData?.nick) {
-        navigate("/");
-      }
-    };
-    checkIfUserCanAccessTheChat();
-  }, [
-    isLoaded,
-    openPopup,
-    roomId,
-    template,
-    serverStatus,
-    serverUrl,
-    navigate,
-    userData,
-  ]);
-
   const [messageInputValue, setMessageInputValue] = useState("");
 
   const [messages, setMessages] = useState<IMessage["messages"]>([]);
 
   useEffect(() => {
-    if (serverStatus !== 200) return;
+    if (!isLoaded || serverStatus !== 200) return;
     const fetchMessages = async () => {
       try {
         const { data } = await Axios.get(`${serverUrl}/getmessages/${roomId}`, {
@@ -190,8 +101,90 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
         });
       }
     };
-    fetchMessages();
-  }, [isLoaded, navigate, openPopup, roomId, serverStatus, serverUrl]);
+
+    const checkIfUserCanAccessTheChat = async () => {
+      if (!roomId && !template) {
+        navigate("/");
+        return openPopup({
+          title: "Oops",
+          description: "No room ID was provided",
+          buttonLabel: "OK",
+          isLoadingWindow: false,
+        });
+      }
+
+      if (roomId) {
+        if (serverStatus !== 200) return navigate("/chat?template");
+
+        try {
+          const { data } = await Axios.get(
+            `${serverUrl}/validateuser/${roomId}`,
+            { withCredentials: true }
+          );
+
+          switch (data.queryStatus) {
+            case 200:
+              setUser(data.result.userData);
+              fetchMessages();
+              break;
+            default:
+              switch (data.errors[0].message) {
+                case "UNKNOWN_ROOM":
+                  navigate("/");
+                  openPopup({
+                    title: "Oops",
+                    description:
+                      "I'm sorry, but we couldn't find a room with this ID",
+                    buttonLabel: "OK",
+                    isLoadingWindow: false,
+                  });
+                  break;
+                case "INVALID_USER":
+                  navigate(`/join?id=${roomId}`);
+                  openPopup({
+                    title: "Hold on",
+                    description:
+                      "It looks like you're not in this room yet, but don't worry, you can still join! We redirected you to the join page",
+                    buttonLabel: "Got it",
+                    isLoadingWindow: false,
+                  });
+                  break;
+                default:
+                  navigate("/");
+                  openPopup({
+                    title: "Oops",
+                    description: `Sorry, an internal server error occured: ${data.errors[0].message}`,
+                    buttonLabel: "OK",
+                    isLoadingWindow: false,
+                  });
+              }
+          }
+        } catch (err) {
+          openPopup({
+            title: "Oops",
+            description: `Sorry, an internal server error occured. ${err}`,
+            buttonLabel: "OK",
+            isLoadingWindow: false,
+          });
+        }
+        return;
+      }
+
+      if (userData?.nick === "" || !userData?.nick) {
+        navigate("/");
+      }
+    };
+    checkIfUserCanAccessTheChat();
+  }, [
+    isLoaded,
+    openPopup,
+    roomId,
+    template,
+    serverStatus,
+    serverUrl,
+    navigate,
+    userData,
+  ]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -205,7 +198,7 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
         const randomNumber = () => {
           return Math.floor(Math.random() * 999999 - 100000);
         };
-        
+
         setMessages([
           ...messages,
           {
@@ -281,11 +274,63 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
   };
 
   const handleLeaveButtonClick = () => {
-    setUserData({
-      nick: "",
-      color: "white",
-    });
-    navigate("/");
+    if (user.isHost) {
+      const deleteRoom = async () => {
+        if (serverStatus !== 200) return navigate("/");
+
+        try {
+          const { data } = await Axios.delete(
+            `${serverUrl}/deleteroom/${roomId}`,
+            { withCredentials: true }
+          );
+
+          switch (data.queryStatus) {
+            case 200:
+              navigate("/");
+              openPopup({
+                title: "Done!",
+                description: "Your room was successfully deleted",
+                isLoadingWindow: false,
+                buttonLabel: "OK",
+              });
+              break;
+            default:
+              openPopup({
+                title: "Oops",
+                description: `An error ocurred while trying to delete your room: ${data.errors[0].message}`,
+                isLoadingWindow: false,
+                buttonLabel: "OK",
+              });
+          }
+        } catch (err) {
+          openPopup({
+            title: "Oops",
+            description: `Sorry, an internal server error occurred while trying to delete your room. ${err}`,
+            isLoadingWindow: false,
+            buttonLabel: "OK",
+          });
+        }
+      };
+
+      openPopup({
+        title: "Be careful",
+        description: "Are you sure you wanna delete this room?",
+        isLoadingWindow: false,
+        isConfirmation: {
+          firstButtonLabel: "Yep, go ahead",
+          secondButtonLabel: "Nah, never mind",
+          afterFunction: deleteRoom,
+          enabled: true,
+        },
+      });
+    }
+  };
+
+  const leaveButtonLabel = () => {
+    if (user.isHost) {
+      return "Delete Room";
+    }
+    return "Leave";
   };
 
   return (
@@ -295,7 +340,7 @@ const Chat: React.FC<IProp> = ({ userData, setUserData, openPopup }) => {
           <p>
             Room ID: <span style={{ color: "forestgreen" }}>{roomId}</span>
           </p>
-          <button onClick={handleLeaveButtonClick}>Leave</button>
+          <button onClick={handleLeaveButtonClick}>{leaveButtonLabel()}</button>
         </ChatTopContainer>
         <ChatContent messages={messages} />
         <ChatBottomContainer>

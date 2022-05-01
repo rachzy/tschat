@@ -6,14 +6,14 @@ import Loader from "../Loader/Loader";
 
 interface IProp {
   popupState: IPopupState;
-  setPopupState: React.Dispatch<React.SetStateAction<IPopupState>>;
 }
 
-const Popup: React.FC<IProp> = ({ popupState, setPopupState }) => {
+const Popup: React.FC<IProp> = ({ popupState }) => {
   const popup = useRef() as MutableRefObject<HTMLDivElement>;
   const popupWindow = useRef() as MutableRefObject<HTMLDivElement>;
 
   const openPopup = () => {
+    popupWindow.current.classList.remove("active");
     popup.current.style.display = "flex";
 
     setTimeout(() => {
@@ -39,6 +39,25 @@ const Popup: React.FC<IProp> = ({ popupState, setPopupState }) => {
   }, [popupState]);
 
   const renderPopupWindow = () => {
+    if (popupState.isConfirmation?.enabled) {
+      const handleButtonClick = () => {
+        popupState.isConfirmation?.afterFunction();
+      };
+      return (
+        <div ref={popupWindow} className="popup-window">
+          <h1>{popupState.title}</h1>
+          <p>{popupState.description}</p>
+          <div className="button-container">
+            <button onClick={handleButtonClick} className="first-button">
+              {popupState.isConfirmation.firstButtonLabel}
+            </button>
+            <button onClick={closePopup} className="second-button">
+              {popupState.isConfirmation.secondButtonLabel}
+            </button>
+          </div>
+        </div>
+      );
+    }
     if (popupState.isLoadingWindow) {
       return (
         <div ref={popupWindow} className="popup-window">
