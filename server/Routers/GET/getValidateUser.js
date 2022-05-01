@@ -35,7 +35,8 @@ router.get("/:roomId/", (req, res) => {
         if (participant.uuid === UUID) {
           userData = {
             nick: participant.nickname,
-            color: participant.color
+            color: participant.color,
+            isHost: participant.host
           }
           return (isUserInThisRoom = true);
         }

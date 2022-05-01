@@ -14,7 +14,6 @@ const Rooms = require("../../models/rooms");
 
 const callback = require("../../globalFunctions/callback");
 const callbackError = require("../../globalFunctions/callbackError");
-const server = require("../../server");
 
 router.post("/", (req, res) => {
   let UUID = authUUID(req, res);
@@ -77,7 +76,6 @@ router.post("/", (req, res) => {
 
       try {
         await Room.save();
-        await server.db.createCollection(roomId);
 
         const maxAge = Number(60 * 60 * 24 * 7);
         res.cookie("CURRENTROOM", roomId, { maxAge: maxAge, httpOnly: true });
