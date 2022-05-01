@@ -15,6 +15,7 @@ export type colors = "red" | "blue" | "green" | "yellow" | "white";
 interface IUser {
   nick: string;
   color: colors;
+  isHost: boolean,
 }
 
 export interface IState {
@@ -27,6 +28,12 @@ export interface IPopupState {
   description: string;
   buttonLabel?: string;
   isLoadingWindow: boolean;
+  isConfirmation?: {
+    firstButtonLabel: string,
+    secondButtonLabel: string,
+    afterFunction: () => void;
+    enabled: boolean
+  };
   enabled: boolean;
 }
 
@@ -68,6 +75,7 @@ const App = () => {
     title,
     description,
     buttonLabel,
+    isConfirmation,
     isLoadingWindow,
   }: Omit<IPopupState, "enabled">) => {
     setPopupState({
@@ -75,6 +83,7 @@ const App = () => {
       description: description,
       buttonLabel: buttonLabel,
       isLoadingWindow: isLoadingWindow,
+      isConfirmation: isConfirmation,
       enabled: true,
     });
   };
@@ -90,6 +99,7 @@ const App = () => {
   const [userData, setUserData] = useState<IUser>({
     nick: "",
     color: "white",
+    isHost: true
   });
 
   return (
@@ -99,7 +109,7 @@ const App = () => {
         serverStatus: serverStatus,
       }}
     >
-      <Popup popupState={popupState} setPopupState={setPopupState} />
+      <Popup popupState={popupState} />
       <Router>
         <Routes>
           <Route

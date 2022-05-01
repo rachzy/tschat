@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./ChatContainer.css";
 
 interface IProp {
@@ -7,16 +7,10 @@ interface IProp {
 }
 
 const ChatContainer: React.FC<IProp> = ({ children, setIsLoaded }) => {
-  return (
-    <div
-      onLoad={() => {
-        setIsLoaded(true);
-      }}
-      className="chat-container"
-    >
-      {children}
-    </div>
-  );
+  useEffect(() => {
+    setIsLoaded(true);
+  }, [setIsLoaded]);
+  return <div className="chat-container">{children}</div>;
 };
 
 export default ChatContainer;
